@@ -1,30 +1,40 @@
-import mongoose from 'mongoose'
+import logger from 'morgan'
 import express from 'express'
 import cors from 'cors'
-
-
-const DB_HOST = 'mongodb+srv://Ivans-aba-zhur:Fr86Ky5YrRmthU7X@cluster0.zox6x.mongodb.net/?retryWrites=true&w=majority'
-
+import dotenv from 'dotenv'
+import eventRouter from './routes/api/events.mjs'
+import authRouter from './routes/api/auth.mjs'
+dotenv.config()
 
 const app = express()
+
+const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
 // const corsOptions = {
 //   origin: 'http://example.com',
 //   optionsSuccessStatus: 200 
 // }
-app.use(cors())
+app.use(logger(formatsLogger));
+app.use(cors());
+app.use(express.json());
+
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
+
+app.use("/api/auth", authRouter)
+app.use("/api/events", eventRouter);
+
+app.use((_, res) => {
+  res.status(404).json({ message: "Not found" });
+});
+
+app.use((err, _, res) => {
+  const { status = 500, message = "Server error" } = err;
+  res.status(status).json({ message });
+});
 
 
-mongoose.connect(DB_HOST)
-    .then(() => {
-    app.listen(4751)
-    console.log("Database connect succsess")
-    })
-    .catch(error => {
-        console.log(error.message)
-        process.exit(1)
-    })
-
-app.get('/', (req, res, next) => {
-    console.log('Hellow')
-})
+export default app
