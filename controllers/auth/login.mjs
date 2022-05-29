@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken"
 
 import {User} from "../../models/index.mjs"
 
-const { Unauthorized } = createError
+const { NotFound } = createError
 
 const login = async (req, res) => {
 
@@ -11,7 +11,7 @@ const login = async (req, res) => {
   const { login, password } = req.body;
   const user = await User.findOne({ login });
   if (!user || !user.comparePassword(password)) {
-    throw new Unauthorized("Wrong login or password");
+    throw new NotFound("Wrong login or password");
   }
 
   const payload = {
